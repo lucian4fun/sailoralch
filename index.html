@@ -120,6 +120,14 @@
                 elixirCount++;
                 goldSpent += 400000; // Each elixir costs 400,000
                 
+                // Adding costs for used items
+                if (usedPowder) {
+                    goldSpent += 3000000; // Lucky Powder costs 3,000,000
+                }
+                if (usedProof) {
+                    goldSpent += 8000000; // Proof Stone costs 8,000,000
+                }
+                
                 if (roll < chance) {
                     currentUpgrade++;
                     if (currentUpgrade > maxLevel) maxLevel = currentUpgrade;
