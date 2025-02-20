@@ -65,6 +65,7 @@
         <p>Elixirs used: <span id="elixir-count">0</span></p>
         <p>Lucky Powders used: <span id="powder-count">0</span></p>
         <p>Proof Stones used: <span id="proof-count">0</span></p>
+        <p>Gold spent: <span id="gold-spent">0</span></p>
         <p>Max + reached: <span id="max-level">+0</span></p>
         <p>+6 reached: <span id="level-6">0</span></p>
         <p>+7 reached: <span id="level-7">0</span></p>
@@ -75,11 +76,12 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const rates = [100, 65, 60, 50, 45, 38, 23, 20, 17, 15, 10, 8, 5]; // Official rates
+            const rates = [65, 60, 50, 45, 38, 23, 20, 17, 15, 10, 8, 5]; // Official rates
             let currentUpgrade = 0;
             let elixirCount = 0;
             let powderCount = 0;
             let proofCount = 0;
+            let goldSpent = 0;
             let maxLevel = 0;
             let level6Count = 0;
             let level7Count = 0;
@@ -116,6 +118,7 @@
                 
                 let roll = Math.random() * 100;
                 elixirCount++;
+                goldSpent += 400000; // Each elixir costs 400,000
                 
                 if (roll < chance) {
                     currentUpgrade++;
@@ -164,6 +167,7 @@
                 document.getElementById("elixir-count").textContent = elixirCount;
                 document.getElementById("powder-count").textContent = powderCount;
                 document.getElementById("proof-count").textContent = proofCount;
+                document.getElementById("gold-spent").textContent = (goldSpent / 1000000).toFixed(1) + "m"; // Show in millions
                 document.getElementById("level-6").textContent = level6Count;
                 document.getElementById("level-7").textContent = level7Count;
                 document.getElementById("level-8").textContent = level8Count;
