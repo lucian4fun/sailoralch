@@ -34,6 +34,18 @@
             border-radius: 5px;
             border: 2px solid #7289da;
         }
+        #log-box {
+            margin-top: 30px;
+            padding: 10px;
+            background: #1e2124;
+            border-radius: 5px;
+            border: 2px solid #7289da;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #a3aab1;
+            font-size: 14px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -41,7 +53,7 @@
         <h1>Sailor Alchemy Simulator</h1>
         <p>Current weapon level: <span id="level">+0</span></p>
         <label>
-            <input type="checkbox" id="proof-stone"> Use Proof Stone (prevents reset after +5)
+            <input type="checkbox" id="proof-stone"> Use Proof Stone 
         </label>
         <br>
         <label>
@@ -85,6 +97,11 @@
         <p>+9 reached: <span id="plus9-count">0</span></p>
         <p>+10 reached: <span id="plus10-count">0</span></p>
     </div>
+
+    <div id="log-box">
+        <h3>Log</h3>
+        <p id="log">Starting log...</p>
+    </div>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -99,6 +116,7 @@
             
             document.getElementById("upgrade-btn").addEventListener("click", function() {
                 if (currentUpgrade >= 12) {
+                    addToLog("Max level reached: +12! Cannot upgrade further.");
                     alert("You already have +12! You can't upgrade anymore.");
                     return;
                 }
@@ -109,33 +127,43 @@
                 let elixirPrice = parseInt(document.getElementById("elixir-price").value) || 0;
                 let proofPrice = parseInt(document.getElementById("proof-price").value) || 0;
                 let luckyPowderPrice = 3000000;
-                
+
                 if (usedPowder) chance += 5;
-                
+
                 let roll = Math.random() * 100;
                 elixirCount++;
                 totalGoldSpent += elixirPrice;
-                
+
+                // Succesul upgrade-ului
                 if (roll < chance) {
                     currentUpgrade++;
+                    addToLog(`Success! Upgraded to +${currentUpgrade}.`);
                     if (currentUpgrade > maxLevel) maxLevel = currentUpgrade;
                     if (plusCounts[currentUpgrade] !== undefined) plusCounts[currentUpgrade]++;
-                } else if (!usedProof || currentUpgrade > 5) {
-                    currentUpgrade = 0;
+                } else {
+                    // Eșec cu Proof Stone
+                    if (usedProof && currentUpgrade > 1) {
+                        currentUpgrade--; // Dacă este un eșec și Proof Stone e folosit și nivelul este mai mare de 1, scade cu 1
+                        proofCount++;
+                        totalGoldSpent += proofPrice;
+                        addToLog(`Failed upgrade. Using Proof Stone, dropped to +${currentUpgrade}.`);
+                    } else {
+                        // Dacă nu se folosește Proof Stone sau nu este permis, resetăm la 0
+                        currentUpgrade = 0;
+                        addToLog("Failed upgrade. Reset to +0.");
+                    }
                 }
-                
-                if (usedProof) {
-                    proofCount++;
-                    totalGoldSpent += proofPrice;
-                }
+
+                // Dacă se folosește Lucky Powder
                 if (usedPowder) {
                     powderCount++;
                     totalGoldSpent += luckyPowderPrice;
+                    addToLog("Lucky Powder used.");
                 }
-                
+
                 updateStats();
             });
-            
+
             function updateStats() {
                 document.getElementById("level").textContent = "+" + currentUpgrade;
                 document.getElementById("elixir-count").textContent = elixirCount;
@@ -146,6 +174,14 @@
                 Object.keys(plusCounts).forEach(lvl => {
                     document.getElementById(`plus${lvl}-count`).textContent = plusCounts[lvl];
                 });
+            }
+
+            function addToLog(message) {
+                const logBox = document.getElementById("log-box");
+                const newLog = document.createElement("p");
+                newLog.textContent = message;
+                logBox.appendChild(newLog);
+                logBox.scrollTop = logBox.scrollHeight; // Scroll to the bottom
             }
         });
     </script>
