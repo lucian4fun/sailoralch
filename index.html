@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sailor Alchemy Simulator</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #2c2f33; color: white; }
+        #alchemy-box {
+            width: 400px;
+            background: #23272a;
+            border: 3px solid #7289da;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 50px auto;
+            box-shadow: 0 0 15px rgba(114, 137, 218, 0.5);
+        }
+        #status { margin-top: 20px; font-size: 18px; }
+        #level { font-weight: bold; color: #ffcc00; }
+        button { 
+            background: #7289da; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+        button:hover { background: #677bc4; }
+        #stats-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #1e2124;
+            border-radius: 5px;
+            border: 2px solid #7289da;
+        }
+    </style>
+</head>
+<body>
+    <div id="alchemy-box">
+        <h1>Sailor Alchemy Simulator</h1>
+        <p>Current weapon level: <span id="level">+0</span></p>
+        <label>
+            <input type="checkbox" id="proof-stone"> Use Proof Stone (prevents reset after +5)
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="lucky-powder"> Use Lucky Powder (+5% chance)
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="premium-plus"> Use Premium PLUS (+5% chance)
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="avatar-dress"> Use Avatar Dress (+4% chance)
+        </label>
+        <br><br>
+        <button id="upgrade-btn">Upgrade</button>
+        <p id="status"></p>
+    </div>
+    
+    <div id="stats-box">
+        <h3>Statistics</h3>
+        <p>Elixirs used: <span id="elixir-count">0</span></p>
+        <p>Lucky Powders used: <span id="powder-count">0</span></p>
+        <p>Proof Stones used: <span id="proof-count">0</span></p>
+        <p>Max + reached: <span id="max-level">+0</span></p>
+        <p>+6 reached: <span id="level-6">0</span></p>
+        <p>+7 reached: <span id="level-7">0</span></p>
+        <p>+8 reached: <span id="level-8">0</span></p>
+        <p>+9 reached: <span id="level-9">0</span></p>
+        <p>+10 reached: <span id="level-10">0</span></p>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const rates = [100, 65, 60, 50, 45, 38, 23, 20, 17, 15, 10, 8, 5]; // Official rates
+            let currentUpgrade = 0;
+            let elixirCount = 0;
+            let powderCount = 0;
+            let proofCount = 0;
+            let maxLevel = 0;
+            let level6Count = 0;
+            let level7Count = 0;
+            let level8Count = 0;
+            let level9Count = 0;
+            let level10Count = 0;
+            
+            document.getElementById("upgrade-btn").addEventListener("click", function() {
+                if (currentUpgrade >= 12) {
+                    alert("You already have +12! You can't upgrade anymore.");
+                    return;
+                }
+                
+                let chance = rates[currentUpgrade];
+                let usedPowder = document.getElementById("lucky-powder").checked;
+                let usedProof = document.getElementById("proof-stone").checked;
+                let usedPremium = document.getElementById("premium-plus").checked;
+                let usedAvatar = document.getElementById("avatar-dress").checked;
+                
+                // Calculating the chance based on used items
+                if (usedPowder) {
+                    chance += 5;
+                    powderCount++;
+                }
+                if (usedPremium) {
+                    chance += 5;
+                }
+                if (usedAvatar) {
+                    chance += 4;
+                }
+                if (usedProof) {
+                    proofCount++;
+                }
+                
+                let roll = Math.random() * 100;
+                elixirCount++;
+                
+                if (roll < chance) {
+                    currentUpgrade++;
+                    if (currentUpgrade > maxLevel) maxLevel = currentUpgrade;
+                    updateStatus("Upgrade successful! New level: +" + currentUpgrade, "green");
+                } else {
+                    if (usedProof && currentUpgrade >= 1 && currentUpgrade <= 5) {
+                        currentUpgrade--;
+                        updateStatus("Failure! Proof Stone protected the item, but it downgraded to +" + currentUpgrade, "orange");
+                    } else if (currentUpgrade > 5 && usedProof) {
+                        currentUpgrade--;
+                        updateStatus("Failure! Proof Stone protected the item, but it downgraded to +" + currentUpgrade, "orange");
+                    } else if (currentUpgrade > 5) {
+                        updateStatus("Failure! The item is lost permanently!", "red");
+                        currentUpgrade = 0;
+                    } else {
+                        updateStatus("Failure! You lost the upgrade. The item is back to +0.", "red");
+                        currentUpgrade = 0;
+                    }
+                }
+
+                // Update statistics for levels +6, +7, +8, +9, +10
+                if (currentUpgrade == 6) level6Count++;
+                if (currentUpgrade == 7) level7Count++;
+                if (currentUpgrade == 8) level8Count++;
+                if (currentUpgrade == 9) level9Count++;
+                if (currentUpgrade == 10) level10Count++;
+
+                // Update stats and level
+                updateStats();
+                updateLevel();
+            });
+            
+            function updateStatus(message, color) {
+                const status = document.getElementById("status");
+                status.textContent = message;
+                status.style.color = color;
+            }
+
+            function updateLevel() {
+                document.getElementById("level").textContent = "+" + currentUpgrade;
+                document.getElementById("max-level").textContent = "+" + maxLevel;
+            }
+
+            function updateStats() {
+                document.getElementById("elixir-count").textContent = elixirCount;
+                document.getElementById("powder-count").textContent = powderCount;
+                document.getElementById("proof-count").textContent = proofCount;
+                document.getElementById("level-6").textContent = level6Count;
+                document.getElementById("level-7").textContent = level7Count;
+                document.getElementById("level-8").textContent = level8Count;
+                document.getElementById("level-9").textContent = level9Count;
+                document.getElementById("level-10").textContent = level10Count;
+            }
+        });
+    </script>
+</body>
+</html>
