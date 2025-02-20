@@ -55,6 +55,18 @@
         <label>
             <input type="checkbox" id="avatar-dress"> Use Avatar Dress (+4% chance)
         </label>
+        <br>
+        <label>
+            <input type="checkbox" id="extra-luck-1" onchange="toggleExtraLuck(1)"> Extra Luck +1% 
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="extra-luck-2" onchange="toggleExtraLuck(2)"> Extra Luck +2%
+        </label>
+        <br><br>
+        <label>Elixir Price: <input type="number" id="elixir-price" value="0"></label>
+        <br>
+        <label>Proof Stone Price: <input type="number" id="proof-price" value="0"></label>
         <br><br>
         <button id="upgrade-btn">Upgrade</button>
         <p id="status"></p>
@@ -65,13 +77,13 @@
         <p>Elixirs used: <span id="elixir-count">0</span></p>
         <p>Lucky Powders used: <span id="powder-count">0</span></p>
         <p>Proof Stones used: <span id="proof-count">0</span></p>
-        <p>Gold spent: <span id="gold-spent">0</span></p>
         <p>Max + reached: <span id="max-level">+0</span></p>
-        <p>+6 reached: <span id="level-6">0</span></p>
-        <p>+7 reached: <span id="level-7">0</span></p>
-        <p>+8 reached: <span id="level-8">0</span></p>
-        <p>+9 reached: <span id="level-9">0</span></p>
-        <p>+10 reached: <span id="level-10">0</span></p>
+        <p>Total Gold Spent: <span id="total-gold">0</span></p>
+        <p>+6 reached: <span id="plus6-count">0</span></p>
+        <p>+7 reached: <span id="plus7-count">0</span></p>
+        <p>+8 reached: <span id="plus8-count">0</span></p>
+        <p>+9 reached: <span id="plus9-count">0</span></p>
+        <p>+10 reached: <span id="plus10-count">0</span></p>
     </div>
     
     <script>
@@ -81,13 +93,9 @@
             let elixirCount = 0;
             let powderCount = 0;
             let proofCount = 0;
-            let goldSpent = 0;
             let maxLevel = 0;
-            let level6Count = 0;
-            let level7Count = 0;
-            let level8Count = 0;
-            let level9Count = 0;
-            let level10Count = 0;
+            let totalGoldSpent = 0;
+            let plusCounts = { 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 };
             
             document.getElementById("upgrade-btn").addEventListener("click", function() {
                 if (currentUpgrade >= 12) {
@@ -98,89 +106,46 @@
                 let chance = rates[currentUpgrade];
                 let usedPowder = document.getElementById("lucky-powder").checked;
                 let usedProof = document.getElementById("proof-stone").checked;
-                let usedPremium = document.getElementById("premium-plus").checked;
-                let usedAvatar = document.getElementById("avatar-dress").checked;
+                let elixirPrice = parseInt(document.getElementById("elixir-price").value) || 0;
+                let proofPrice = parseInt(document.getElementById("proof-price").value) || 0;
+                let luckyPowderPrice = 3000000;
                 
-                // Calculating the chance based on used items
-                if (usedPowder) {
-                    chance += 5;
-                    powderCount++;
-                }
-                if (usedPremium) {
-                    chance += 5;
-                }
-                if (usedAvatar) {
-                    chance += 4;
-                }
-                if (usedProof) {
-                    proofCount++;
-                }
+                if (usedPowder) chance += 5;
                 
                 let roll = Math.random() * 100;
                 elixirCount++;
-                goldSpent += 400000; // Each elixir costs 400,000
-                
-                // Adding costs for used items
-                if (usedPowder) {
-                    goldSpent += 3000000; // Lucky Powder costs 3,000,000
-                }
-                if (usedProof) {
-                    goldSpent += 8000000; // Proof Stone costs 8,000,000
-                }
+                totalGoldSpent += elixirPrice;
                 
                 if (roll < chance) {
                     currentUpgrade++;
                     if (currentUpgrade > maxLevel) maxLevel = currentUpgrade;
-                    updateStatus("Upgrade successful! New level: +" + currentUpgrade, "green");
-                } else {
-                    if (usedProof && currentUpgrade >= 1 && currentUpgrade <= 5) {
-                        currentUpgrade--;
-                        updateStatus("Failure! Proof Stone protected the item, but it downgraded to +" + currentUpgrade, "orange");
-                    } else if (currentUpgrade > 5 && usedProof) {
-                        currentUpgrade--;
-                        updateStatus("Failure! Proof Stone protected the item, but it downgraded to +" + currentUpgrade, "orange");
-                    } else if (currentUpgrade > 5) {
-                        updateStatus("Failure! The item is lost permanently!", "red");
-                        currentUpgrade = 0;
-                    } else {
-                        updateStatus("Failure! You lost the upgrade. The item is back to +0.", "red");
-                        currentUpgrade = 0;
-                    }
+                    if (plusCounts[currentUpgrade] !== undefined) plusCounts[currentUpgrade]++;
+                } else if (!usedProof || currentUpgrade > 5) {
+                    currentUpgrade = 0;
                 }
-
-                // Update statistics for levels +6, +7, +8, +9, +10
-                if (currentUpgrade == 6) level6Count++;
-                if (currentUpgrade == 7) level7Count++;
-                if (currentUpgrade == 8) level8Count++;
-                if (currentUpgrade == 9) level9Count++;
-                if (currentUpgrade == 10) level10Count++;
-
-                // Update stats and level
+                
+                if (usedProof) {
+                    proofCount++;
+                    totalGoldSpent += proofPrice;
+                }
+                if (usedPowder) {
+                    powderCount++;
+                    totalGoldSpent += luckyPowderPrice;
+                }
+                
                 updateStats();
-                updateLevel();
             });
             
-            function updateStatus(message, color) {
-                const status = document.getElementById("status");
-                status.textContent = message;
-                status.style.color = color;
-            }
-
-            function updateLevel() {
-                document.getElementById("level").textContent = "+" + currentUpgrade;
-                document.getElementById("max-level").textContent = "+" + maxLevel;
-            }
-
             function updateStats() {
+                document.getElementById("level").textContent = "+" + currentUpgrade;
                 document.getElementById("elixir-count").textContent = elixirCount;
                 document.getElementById("powder-count").textContent = powderCount;
                 document.getElementById("proof-count").textContent = proofCount;
-                document.getElementById("gold-spent").textContent = (goldSpent / 1000000).toFixed(1) + "m"; // Show in millions
-                document.getElementById("level-6").textContent = level6Count;
-                document.getElementById("level-7").textContent = level7Count;
-                document.getElementById("level-8").textContent = level8Count;
-                document.getElementById("level-9").textContent = level9Count;
-                document.getElementById("level-10").textContent = level10Count;
+                document.getElementById("max-level").textContent = "+" + maxLevel;
+                document.getElementById("total-gold").textContent = totalGoldSpent.toLocaleString();
+                Object.keys(plusCounts).forEach(lvl => {
+                    document.getElementById(`plus${lvl}-count`).textContent = plusCounts[lvl];
+                });
             }
         });
     </script>
